@@ -1,6 +1,9 @@
 """Tests for the ContainerManager."""
 
+import logging
 import unittest
+
+import pandas as pd
 
 from dftimewolf.lib.containers import containers
 from dftimewolf.lib.containers import interface
@@ -75,9 +78,6 @@ class _TestContainer1(interface.AttributeContainer):
     super().__init__()
     self.param = param
 
-  def __eq__(self, other: "_TestContainer1"):
-    return self.param == other.param
-
 
 class _TestContainer2(_TestContainer1):
   """A Test container."""
@@ -92,9 +92,6 @@ class _TestContainer3(interface.AttributeContainer):
     super().__init__()
     self.field = field
 
-  def __eq__(self, other: "_TestContainer3"):
-    return self.field == other.field
-
 
 class ContainerManagerTest(unittest.TestCase):
   """Tests for the ContainerManager."""
@@ -103,7 +100,10 @@ class ContainerManagerTest(unittest.TestCase):
     """Set up."""
     super().setUp()
 
-    self._container_manager = manager.ContainerManager()
+    null_logger = logging.Logger('null')
+    null_logger.addHandler(logging.NullHandler())
+
+    self._container_manager = manager.ContainerManager(null_logger)
 
   def test_GetWithoutRecipeParsed(self):
     """Tests an error is thrown getting containers before a recipe is parsed."""
@@ -628,6 +628,72 @@ class ContainerManagerTest(unittest.TestCase):
           container_class=_TestContainer3)
       self.assertEqual(len(actual), 1)
       self.assertIn(_TestContainer3('Stored by ModuleA'), actual)
+
+  def test_StoreDuplicateContainers(self):
+    """Tests that attempts to store duplicate containers are disregarded."""
+    self._container_manager.ParseRecipe(_TEST_RECIPE)
+
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=_TestContainer1('param1'))
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=_TestContainer1('param1'))
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=_TestContainer2('param1'))
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=_TestContainer2('param1'))
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=_TestContainer2('param2'))
+
+    # Metadata is not considered in duplicate comparison
+    c5 = _TestContainer3('param1')
+    c6 = _TestContainer3('param1')
+    c5.SetMetadata('key', 'foo')
+    c6.SetMetadata('key', 'bar')
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=c5)
+    self._container_manager.StoreContainer(
+        source_module='Preflight1', container=c6)
+
+    # Dataframe members of containers have special handling; check that too
+    df1 = pd.DataFrame(columns=['a', 'b'], data=[[1, 2], [3, 4]])
+    df2 = pd.DataFrame(columns=['a', 'b'], data=[[1, 2], [3, 4]])
+    df3 = pd.DataFrame(columns=['c', 'd'], data=[[5, 6], [7, 8]])
+    self._container_manager.StoreContainer(
+        source_module='Preflight1',
+        container=containers.DataFrame(
+            data_frame=df1, description='Description', name='name'))
+    self._container_manager.StoreContainer(
+        source_module='Preflight1',
+        container=containers.DataFrame(
+            data_frame=df2, description='Description', name='name'))
+    self._container_manager.StoreContainer(
+        source_module='Preflight1',
+        container=containers.DataFrame(
+            data_frame=df3, description='Description', name='name'))
+
+    actual = self._container_manager.GetContainers(
+        requesting_module='ModuleA', container_class=_TestContainer1)
+    self.assertEqual(len(actual), 1)
+    self.assertIn(_TestContainer1('param1'), actual)
+
+    actual = self._container_manager.GetContainers(
+        requesting_module='ModuleA', container_class=_TestContainer2)
+    self.assertEqual(len(actual), 2)
+    self.assertIn(_TestContainer2('param1'), actual)
+    self.assertIn(_TestContainer2('param2'), actual)
+
+    actual = self._container_manager.GetContainers(
+        requesting_module='ModuleA', container_class=_TestContainer3)
+    self.assertEqual(len(actual), 1)
+    self.assertIn(_TestContainer3('param1'), actual)
+
+    actual = self._container_manager.GetContainers(
+        requesting_module='ModuleA', container_class=containers.DataFrame)
+    self.assertEqual(len(actual), 2)
+    self.assertIn(containers.DataFrame(
+        data_frame=df1, description='Description', name='name'), actual)
+    self.assertIn(containers.DataFrame(
+        data_frame=df3, description='Description', name='name'), actual)
 
 
 if __name__ == '__main__':

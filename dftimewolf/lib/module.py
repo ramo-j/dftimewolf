@@ -133,7 +133,7 @@ class BaseModule(object):
     error = errors.DFTimewolfError(
         message, name=self.name, stacktrace=stacktrace, critical=critical)
     if self._telemetry:
-      self._telemetry.LogTelemetry('error_detail',message, self.name)
+      self._telemetry.LogTelemetry('error_detail', message, self.name)
 
     self.PublishMessage(message, is_error=True, is_critical=critical)
     if critical:

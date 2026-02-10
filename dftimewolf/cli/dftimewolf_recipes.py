@@ -330,8 +330,7 @@ class DFTimewolfTool(object):
     if error_messages:
       for message in error_messages:
         logger.critical(message)
-      raise errors.CriticalError(
-          'At least one argument failed validation')
+      raise errors.CriticalError('At least one argument failed validation')
 
   def InterpolateArgs(self) -> None:
     """Interpolate config values and CLI args into the recipe args."""
@@ -371,11 +370,15 @@ class DFTimewolfTool(object):
     """Reads additional recipes from a given directory."""
     self._recipes_manager.ReadRecipesFromDirectory(directory)
 
-  def RunAllModules(self) -> None:
-    """Runs the modules."""
+  def RunAllModules(self) -> int:
+    """Runs the modules.
+
+    Returns:
+      0 on success, 1 on error."""
     logger.info('Running modules...')
-    self._module_runner.Run(self._running_args)
+    return_value = self._module_runner.Run(self._running_args)
     logger.info('Modules run successfully!')
+    return return_value
 
   def LogTelemetry(self) -> None:
     """Prints collected telemetry if existing."""
@@ -407,6 +410,10 @@ class DFTimewolfTool(object):
   def LogExecutionPlan(self) -> None:
     """log the execution plan."""
     self._module_runner.LogExecutionPlan()
+
+  def GetReport(self) -> str:
+    """Fetches the runtime report from the module runner."""
+    return self._module_runner.GenerateReport()
 
 
 def SignalHandler(*unused_argvs: Any) -> None:
@@ -502,11 +509,13 @@ def RunTool() -> int:
     logger.info("Exiting as --dry_run flag is set.")
     return 0
 
-  tool.RunAllModules()
+  return_value = tool.RunAllModules()
 
   tool.LogTelemetry()
 
-  return 0
+  print(tool.GetReport())
+
+  return return_value
 
 
 def Main() -> int:

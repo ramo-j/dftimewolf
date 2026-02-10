@@ -58,10 +58,6 @@ class ModuleTestBase(parameterized.TestCase):
     else:
       self._module.Process()
 
-  def _AssertNoErrors(self):
-    """Asserts that no errors have been generated."""
-    # TODO - DO NOT SUBMIT
-
   def _UpstreamStoreContainer(self, container: interface.AttributeContainer):
     """Simulates the storing of a container from an upstream dependency."""
     self._container_manager.StoreContainer(container=container,

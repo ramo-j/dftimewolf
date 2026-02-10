@@ -207,7 +207,7 @@ class ModuleRunnerTest(parameterized.TestCase):
     self.assertListEqual(sorted([c.value for c in output_containers]),
                          sorted(['one appended', 'two appended', 'three appended']))
 
-  def testThreadAwareModuleContainerReuse(self):
+  def test_ThreadAwareModuleContainerReuse(self):
     """Tests that containers are handled properly when they are configured to
     pop from the state by a ThreadAwareModule that uses the same container type
     for input and output.
@@ -259,7 +259,7 @@ class ModuleRunnerTest(parameterized.TestCase):
       mock_dm_2_setup.assert_not_called()
       mock_dm_1_process.assert_not_called()
       mock_dm_2_process.assert_not_called()
-      mock_dp_1_cleanup.assert_called_once()
+      mock_dp_1_cleanup.assert_not_called()
 
   def test_PreflightProcessUnhandledError(self):
     """Tests an error in Preflights Process cancels execution of later modules."""
@@ -285,11 +285,11 @@ class ModuleRunnerTest(parameterized.TestCase):
       mock_dm_2_setup.assert_not_called()
       mock_dm_1_process.assert_not_called()
       mock_dm_2_process.assert_not_called()
-      mock_dp_1_cleanup.assert_called_once()
+      mock_dp_1_cleanup.assert_not_called()
 
   def test_ModuleSetUpUnhandledError(self):
     """Tests an error in a modules SetUp cancels execution of later modules."""
-    # If a module fails in SetUp, then no modules should have Process called.
+    # If a module fails in SetUp, then that module should not have Process called.
     with (mock.patch('tests.test_modules.modules.DummyPreflightModule.SetUp') as mock_dp_1_setup,
           mock.patch('tests.test_modules.modules.DummyPreflightModule.Process') as mock_dp_1_process,
           mock.patch('tests.test_modules.modules.DummyPreflightModule.CleanUp') as mock_dp_1_cleanup,
@@ -307,15 +307,13 @@ class ModuleRunnerTest(parameterized.TestCase):
       mock_dp_1_setup.assert_called_once()
       mock_dp_1_process.assert_called_once()
       mock_dm_1_setup.assert_called_once()
-      mock_dm_2_setup.assert_not_called()
+      mock_dm_2_setup.assert_called_once()
       mock_dm_1_process.assert_not_called()
-      mock_dm_2_process.assert_not_called()
+      mock_dm_2_process.assert_called_once()
       mock_dp_1_cleanup.assert_called_once()
 
   def test_ModuleProcessUnhandledError(self):
-    """Tests an error in a modules Process cancels execution of later modules."""
-    # If a module fails in Process, then dependant modules should not have
-    # Process called.
+    """Tests an error in a modules Process doesn't cancel execution of later modules."""
     with (mock.patch('tests.test_modules.modules.DummyPreflightModule.SetUp') as mock_dp_1_setup,
           mock.patch('tests.test_modules.modules.DummyPreflightModule.Process') as mock_dp_1_process,
           mock.patch('tests.test_modules.modules.DummyPreflightModule.CleanUp') as mock_dp_1_cleanup,
@@ -335,7 +333,7 @@ class ModuleRunnerTest(parameterized.TestCase):
       mock_dm_1_setup.assert_called_once()
       mock_dm_2_setup.assert_called_once()
       mock_dm_1_process.assert_called_once()
-      mock_dm_2_process.assert_not_called()
+      mock_dm_2_process.assert_called_once()
       mock_dp_1_cleanup.assert_called_once()
 
   def test_ThreadedModuleSetUpUnhandledError(self):
@@ -382,7 +380,7 @@ class ModuleRunnerTest(parameterized.TestCase):
 
   def test_ThreadedModuleProcessUnhandledError(self):
     """Tests an error in Process of a threaded module."""
-    # If a module fails in Process, Postprecoess is still called.
+    # If a module fails in Process, PostProcess is still called.
     with (mock.patch('tests.test_modules.thread_aware_modules.ThreadAwareConsumerModule.SetUp') as mock_tacm_setup,
           mock.patch('tests.test_modules.thread_aware_modules.ThreadAwareConsumerModule.PreProcess') as mock_tacm_preprocess,
           mock.patch('tests.test_modules.thread_aware_modules.ThreadAwareConsumerModule.Process') as mock_tacm_process,

@@ -413,7 +413,7 @@ class DFTimewolfTool(object):
 
   def GetReport(self) -> str:
     """Fetches the runtime report from the module runner."""
-    return self._module_runner.GenerateReport()
+    return f'\n{self._module_runner.GenerateReport()}'
 
 
 def SignalHandler(*unused_argvs: Any) -> None:

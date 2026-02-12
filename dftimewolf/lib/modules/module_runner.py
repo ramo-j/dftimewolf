@@ -166,7 +166,7 @@ class ModuleRunner(object):
     """Generates the runtime report from the module results and errors."""
     separator = '----------'
 
-    lines = ['', self._recipe['name'], separator]
+    lines = [self._recipe['name'], separator]
 
     for module, messages in self._messages.items():
       if not messages:
@@ -250,6 +250,7 @@ class ModuleRunner(object):
         preflight.Process()
       except errors.DFTimewolfError as error:
         self._errors[runtime_name].append(error)
+        self._logger.debug('', exc_info=True)
       except Exception as error:  # pylint: disable=broad-exception-caught
         self._UnhandledException(error, runtime_name)
 
@@ -281,6 +282,7 @@ class ModuleRunner(object):
       module.SetUp(**(self._module_setup_args[runtime_name]))
     except errors.DFTimewolfError as error:
       self._errors[runtime_name].append(error)
+      self._logger.debug('', exc_info=True)
     except Exception as error:  # pylint: disable=broad-exception-caught
       self._UnhandledException(error, runtime_name)
 
@@ -353,6 +355,7 @@ class ModuleRunner(object):
 
     except errors.DFTimewolfError as error:
       self._errors[runtime_name].append(error)
+      self._logger.debug('', exc_info=True)
     except Exception as error:  # pylint: disable=broad-exception-caught
       self._UnhandledException(error, runtime_name)
 

@@ -1,5 +1,6 @@
 """A base class for DFTW module testing."""
 
+import dataclasses
 from typing import Sequence, Type
 from unittest import mock
 
@@ -14,6 +15,13 @@ from dftimewolf.lib import module
 # pylint: disable=line-too-long
 
 
+@dataclasses.dataclass
+class _MESSAGE:
+  source: str
+  message: str
+  is_error: bool
+
+
 class ModuleTestBase(parameterized.TestCase):
   """A base class for DFTW module testing."""
 
@@ -26,6 +34,7 @@ class ModuleTestBase(parameterized.TestCase):
     self._cache: cache.DFTWCache = None
     self._container_manager: container_manager.ContainerManager = None
     self._telemetry: mock.MagicMock = None
+    self._messages: list[_MESSAGE] = []
 
   def _InitModule(self, test_module: type[module.BaseModule]):  # pylint: disable=arguments-differ
     """Initialises the module, the DFTW state and recipe for module testing."""
@@ -38,6 +47,7 @@ class ModuleTestBase(parameterized.TestCase):
                      {'name': name, 'wants': ['upstream']},
                      {'name': 'downstream', 'wants': [name]}]})
     self._telemetry = mock.MagicMock()
+    self._messages = []
 
     self._module = test_module(name=name,
                                container_manager_=self._container_manager,
@@ -72,3 +82,4 @@ class ModuleTestBase(parameterized.TestCase):
 
   def _PublishMessage(self, source: str, message: str, is_error: bool = False) -> None:
     """Testing version of PublishMessage"""
+    self._messages.append(_MESSAGE(source, message, is_error))

@@ -103,7 +103,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       # pytype: enable=unsupported-operands
 
       self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 0)
 
       self.assertEqual(mock_dp_1_setup.call_count, 1)
       self.assertEqual(mock_dp_1_process.call_count, 1)
@@ -145,7 +146,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args['recipe']['preflights'][0]['args'] = {'args': 'none'}  # pytype: disable=unsupported-operands
 
       self._runner.Initialise(test_recipe.with_runtime_names, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 0)
 
       self.assertEqual(mock_dp_1_setup.call_count, 1)
       self.assertEqual(mock_dp_1_process.call_count, 1)
@@ -186,7 +188,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args['recipe']['modules'][0]['args'] = {'runtime_value': 'one,two,three'}  # pytype: disable=unsupported-operands
 
       self._runner.Initialise(test_recipe.threaded_no_preflights, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 0)
 
       mock_parent.assert_has_calls([mock.call.mock_tacm_setup(),
                                     mock.call.mock_tacm_preprocess(),
@@ -206,7 +209,8 @@ class ModuleRunnerTest(parameterized.TestCase):
 
     # Mock out the container cleanup for this test
     with mock.patch.object(self._runner._container_manager, 'CompleteModule'):  # pylint: disable=protected-access
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 0)
 
     output_containers = self._runner._container_manager.GetContainers(  # pylint: disable=protected-access
         'ThreadAwareConsumerModule', thread_aware_modules.TestContainerThree)
@@ -236,7 +240,8 @@ class ModuleRunnerTest(parameterized.TestCase):
     container_manager.StoreContainer(container=thread_aware_modules.TestContainer('three'), source_module='Issue503Module')
 
     with mock.patch.object(container_manager, 'CompleteModule'):
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 0)
 
     values = [container.value for container in container_manager.GetContainers(
         container_class=thread_aware_modules.TestContainer,
@@ -256,7 +261,8 @@ class ModuleRunnerTest(parameterized.TestCase):
     # pytype: enable=unsupported-operands
 
     self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-    self._runner.Run(running_args=running_args)
+    return_value = self._runner.Run(running_args=running_args)
+    self.assertEqual(return_value, 0)
 
     self.assertEqual(self._runner.GenerateReport(),
                      'dummy_recipe\n'
@@ -293,7 +299,8 @@ class ModuleRunnerTest(parameterized.TestCase):
     # pytype: enable=unsupported-operands
 
     self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-    self._runner.Run(running_args=running_args)
+    return_value = self._runner.Run(running_args=running_args)
+    self.assertEqual(return_value, 1)
 
     self.assertEqual(self._runner.GenerateReport(),
                      'dummy_recipe\n'
@@ -318,7 +325,8 @@ class ModuleRunnerTest(parameterized.TestCase):
     running_args['recipe']['modules'][0]['args'] = {'runtime_value': 'one,two,three'}  # pytype: disable=unsupported-operands
 
     self._runner.Initialise(test_recipe.threaded_no_preflights, TEST_MODULES)
-    self._runner.Run(running_args=running_args)
+    return_value = self._runner.Run(running_args=running_args)
+    self.assertEqual(return_value, 0)
 
     self.assertEqual(self._runner.GenerateReport(),
                      'dummy_threaded_recipe\n'
@@ -346,7 +354,8 @@ class ModuleRunnerTest(parameterized.TestCase):
     running_args['recipe']['modules'][0]['args'] = {'runtime_value': 'one,two,three'}  # pytype: disable=unsupported-operands
 
     self._runner.Initialise(test_recipe.threaded_no_preflights, TEST_MODULES)
-    self._runner.Run(running_args=running_args)
+    return_value = self._runner.Run(running_args=running_args)
+    self.assertEqual(return_value, 1)
 
     self.assertEqual(self._runner.GenerateReport(),
                      'dummy_threaded_recipe\n'
@@ -384,7 +393,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args = {'recipe': test_recipe.basic_recipe}
 
       self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_dp_1_setup.assert_called_once()
       mock_dp_1_process.assert_not_called()
@@ -417,7 +427,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args = {'recipe': test_recipe.basic_recipe}
 
       self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_dp_1_setup.assert_called_once()
       mock_dp_1_process.assert_called_once()
@@ -449,7 +460,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args = {'recipe': test_recipe.basic_recipe}
 
       self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_dp_1_setup.assert_called_once()
       mock_dp_1_process.assert_called_once()
@@ -480,7 +492,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args = {'recipe': test_recipe.basic_recipe}
 
       self._runner.Initialise(test_recipe.basic_recipe, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_dp_1_setup.assert_called_once()
       mock_dp_1_process.assert_called_once()
@@ -511,7 +524,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args['recipe']['modules'][0]['args'] = {'runtime_value': 'one,two,three'}  # pytype: disable=unsupported-operands
 
       self._runner.Initialise(test_recipe.threaded_no_preflights, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_tacm_setup.assert_called_once()
       mock_tacm_preprocess.assert_not_called()
@@ -539,7 +553,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args['recipe']['modules'][0]['args'] = {'runtime_value': 'one,two,three'}  # pytype: disable=unsupported-operands
 
       self._runner.Initialise(test_recipe.threaded_no_preflights, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_tacm_setup.assert_called_once()
       mock_tacm_preprocess.assert_called_once()
@@ -567,7 +582,8 @@ class ModuleRunnerTest(parameterized.TestCase):
       running_args['recipe']['modules'][0]['args'] = {'runtime_value': 'one,two,three'}  # pytype: disable=unsupported-operands
 
       self._runner.Initialise(test_recipe.threaded_no_preflights, TEST_MODULES)
-      self._runner.Run(running_args=running_args)
+      return_value = self._runner.Run(running_args=running_args)
+      self.assertEqual(return_value, 1)
 
       mock_tacm_setup.assert_called_once()
       mock_tacm_preprocess.assert_called_once()

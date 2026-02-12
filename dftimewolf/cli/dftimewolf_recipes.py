@@ -416,7 +416,7 @@ class DFTimewolfTool(object):
     """Fetches the runtime report from the module runner."""
     return f'\n{self._module_runner.GenerateReport()}'
 
-  def AddLoggingHandler(self, handler: logging.Handler) -> str:
+  def AddLoggingHandler(self, handler: logging.Handler) -> None:
     """Adds an additional logging handler."""
     if handler not in logger.handlers:
       logger.addHandler(handler)

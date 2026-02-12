@@ -414,7 +414,7 @@ class ModuleRunner(object):
 
   def _HandledException(self, error: errors.DFTimewolfError, runtime_name: str) -> None:
     """Handles DFTimewolfError exceptions."""
-    message = f'Critical exception encountered in {runtime_name}: {str(error)}'
+    message = f'Critical error encountered in {runtime_name}: {str(error)}'
     self._logger.error(message)
     self.PublishMessage(source=runtime_name, message=message, is_error=True)
     self._logger.debug('', exc_info=True)

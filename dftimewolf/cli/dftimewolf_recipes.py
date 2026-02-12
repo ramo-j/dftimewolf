@@ -377,7 +377,8 @@ class DFTimewolfTool(object):
       0 on success, 1 on error."""
     logger.info('Running modules...')
     return_value = self._module_runner.Run(self._running_args)
-    logger.info('Modules run successfully!')
+    if not return_value:
+      logger.info('Modules run successfully!')
     return return_value
 
   def LogTelemetry(self) -> None:
@@ -414,6 +415,12 @@ class DFTimewolfTool(object):
   def GetReport(self) -> str:
     """Fetches the runtime report from the module runner."""
     return f'\n{self._module_runner.GenerateReport()}'
+
+  def AddLoggingHandler(self, handler: logging.Handler) -> str:
+    """Adds an additional logging handler."""
+    if handler not in logger.handlers:
+      logger.addHandler(handler)
+    self._module_runner.AddLoggingHandler(handler)
 
 
 def SignalHandler(*unused_argvs: Any) -> None:

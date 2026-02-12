@@ -71,7 +71,7 @@ class ModuleTestBase(parameterized.TestCase):
   def _UpstreamStoreContainer(self, container: interface.AttributeContainer):
     """Simulates the storing of a container from an upstream dependency."""
     self._container_manager.StoreContainer(container=container,
-                                    source_module='upstream')
+                                           source_module='upstream')
 
   def _DownstreamGetContainer(
       self, type_: Type[interface.AttributeContainer]

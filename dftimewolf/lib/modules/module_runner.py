@@ -249,8 +249,7 @@ class ModuleRunner(object):
         preflight.SetUp(**(self._module_setup_args[runtime_name]))
         preflight.Process()
       except errors.DFTimewolfError as error:
-        self._errors[runtime_name].append(error)
-        self._logger.debug('', exc_info=True)
+        self._HandledException(error, runtime_name)
       except Exception as error:  # pylint: disable=broad-exception-caught
         self._UnhandledException(error, runtime_name)
 
@@ -281,8 +280,7 @@ class ModuleRunner(object):
 
       module.SetUp(**(self._module_setup_args[runtime_name]))
     except errors.DFTimewolfError as error:
-      self._errors[runtime_name].append(error)
-      self._logger.debug('', exc_info=True)
+      self._HandledException(error, runtime_name)
     except Exception as error:  # pylint: disable=broad-exception-caught
       self._UnhandledException(error, runtime_name)
 
@@ -354,8 +352,7 @@ class ModuleRunner(object):
       self._container_manager.CompleteModule(runtime_name)
 
     except errors.DFTimewolfError as error:
-      self._errors[runtime_name].append(error)
-      self._logger.debug('', exc_info=True)
+      self._HandledException(error, runtime_name)
     except Exception as error:  # pylint: disable=broad-exception-caught
       self._UnhandledException(error, runtime_name)
 
@@ -415,9 +412,18 @@ class ModuleRunner(object):
 
     return plan
 
+  def _HandledException(self, error: errors.DFTimewolfError, runtime_name: str) -> None:
+    """Handles DFTimewolfError exceptions."""
+    message = f'Critical exception encountered in {runtime_name}: {str(error)}'
+    self._logger.error(message)
+    self.PublishMessage(source=runtime_name, message=message, is_error=True)
+    self._logger.debug('', exc_info=True)
+    self._errors[runtime_name].append(error)
+
   def _UnhandledException(self, error: Exception, runtime_name: str) -> None:
     """Handles an otherwise unhandled exception."""
-    message = f'Unhandled exception encountered in {runtime_name}: {str(error)}'
+    message = f'Unhandled critical exception encountered in {runtime_name}: {str(error)}'
+    self._logger.error(message)
     self.PublishMessage(source=runtime_name, message=message, is_error=True)
     self._logger.debug('', exc_info=True)
     self._errors[runtime_name].append(errors.DFTimewolfError(

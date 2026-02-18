@@ -11,7 +11,6 @@ from concurrent import futures
 
 from dftimewolf.lib import cache
 from dftimewolf.lib import errors
-from dftimewolf.lib import resources
 from dftimewolf.lib import module as dftw_module
 from dftimewolf.lib import telemetry
 from dftimewolf.lib import utils
@@ -49,14 +48,14 @@ class ModuleRunner(object):
     self._cache = cache.DFTWCache()
     self._cache.SetCLIArgs(' '.join(sys.argv))
 
-  def Initialise(self, recipe: resources.Recipe, module_locations: dict[str, str]) -> None:
+  def Initialise(self, recipe_dict: dict[str, typing.Any], module_locations: dict[str, str]) -> None:
     """Based on a recipe and module mapping, load and instantiate required modules.
 
     Args:
-      recipe: A parsed and interpolated recipe dict.
+      recipe_dict: A parsed and interpolated recipe dict.
       module_locations: A mapping of module names to package paths.
     """
-    self._recipe = recipe.contents
+    self._recipe = recipe_dict
     self._cache.SetRecipeName(self._recipe['name'])
 
     module_definitions = self._recipe.get('modules', [])

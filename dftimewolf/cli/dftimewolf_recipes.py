@@ -196,7 +196,7 @@ class DFTimewolfTool(object):
       recipe_name: The name of the recipe to use.
     """
     self._recipe = self._recipes_manager.GetRecipe(recipe_name)
-    self._module_runner.Initialise(self._recipe, MODULES)
+    self._module_runner.Initialise(self._recipe.contents, MODULES)
 
     # At this point we no longer need the recipe manager
     del self._recipes_manager
@@ -351,8 +351,12 @@ class DFTimewolfTool(object):
                 self._running_args[to_substitute])
     return arg
 
-  def RunAllModules(self) -> None:
-    """Runs the modules."""
+  def RunAllModules(self) -> int:
+    """Runs the modules.
+
+    Returns:
+      Unix style - 1 on error, 0 on success.
+    """
     logger.info('Running modules...')
 
     return_value = self._module_runner.Run(self._recipe.contents)

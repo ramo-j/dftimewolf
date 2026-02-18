@@ -238,6 +238,35 @@ class DFTimewolfTool(object):
     # Then interpolate them into the recipe
     self._InterpolateArgs()
 
+  def RunAllModules(self) -> int:
+    """Runs the modules.
+
+    Returns:
+      Unix style - 1 on error, 0 on success.
+    """
+    logger.info('Running modules...')
+
+    return_value = self._module_runner.Run(self._recipe.contents)
+    if not return_value:
+      logger.info('Modules run successfully!')
+    return return_value
+
+  def LogTelemetry(self) -> None:
+    """Prints collected telemetry if existing."""
+
+    for line in self._telemetry.FormatTelemetry().split('\n'):
+      logger.debug(line)
+
+  def LogExecutionPlan(self) -> None:
+    """log the execution plan."""
+    self._module_runner.LogExecutionPlan()
+
+  def AddLoggingHandler(self, handler: logging.Handler) -> None:
+    """Adds an additional logging handler."""
+    if handler not in logger.handlers:
+      logger.addHandler(handler)
+    self._module_runner.AddLoggingHandler(handler)
+
   def _DetermineDataFilesPath(self) -> None:
     """Determines the data files path.
 
@@ -350,29 +379,6 @@ class DFTimewolfTool(object):
             arg.validation_params[key] = (
                 self._running_args[to_substitute])
     return arg
-
-  def RunAllModules(self) -> int:
-    """Runs the modules.
-
-    Returns:
-      Unix style - 1 on error, 0 on success.
-    """
-    logger.info('Running modules...')
-
-    return_value = self._module_runner.Run(self._recipe.contents)
-    if not return_value:
-      logger.info('Modules run successfully!')
-    return return_value
-
-  def LogTelemetry(self) -> None:
-    """Prints collected telemetry if existing."""
-
-    for line in self._telemetry.FormatTelemetry().split('\n'):
-      logger.debug(line)
-
-  def LogExecutionPlan(self) -> None:
-    """log the execution plan."""
-    self._module_runner.LogExecutionPlan()
 
 
 def SignalHandler(*unused_argvs: Any) -> None:

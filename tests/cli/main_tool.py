@@ -73,7 +73,7 @@ def _CreateToolObject():
 
 
 def _EnumerateRecipeNames():
-  """Enumerate recipe names for the purposes of generatting parameterised tests.
+  """Enumerate recipe names for the purposes of generating parameterised tests.
   """
   tool = _CreateToolObject()
   # pylint: disable=protected-access

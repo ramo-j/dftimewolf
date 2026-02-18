@@ -11,6 +11,7 @@ from concurrent import futures
 
 from dftimewolf.lib import cache
 from dftimewolf.lib import errors
+from dftimewolf.lib import resources
 from dftimewolf.lib import module as dftw_module
 from dftimewolf.lib import telemetry
 from dftimewolf.lib import utils
@@ -48,19 +49,19 @@ class ModuleRunner(object):
     self._cache = cache.DFTWCache()
     self._cache.SetCLIArgs(' '.join(sys.argv))
 
-  def Initialise(self, recipe: dict[str, typing.Any], module_locations: dict[str, str]) -> None:
+  def Initialise(self, recipe: resources.Recipe, module_locations: dict[str, str]) -> None:
     """Based on a recipe and module mapping, load and instantiate required modules.
 
     Args:
       recipe: A parsed and interpolated recipe dict.
       module_locations: A mapping of module names to package paths.
     """
-    self._recipe = recipe
+    self._recipe = recipe.contents
     self._cache.SetRecipeName(self._recipe['name'])
 
     module_definitions = self._recipe.get('modules', [])
     preflight_definitions = self._recipe.get('preflights', [])
-    self._ImportRecipeModules(recipe, module_locations)
+    self._ImportRecipeModules(module_locations)
 
     for module_definition in module_definitions + preflight_definitions:
       module_name = module_definition['name']
@@ -78,7 +79,7 @@ class ModuleRunner(object):
         raise RuntimeError(f'Could not instantiate module {module_name}')
 
     self._container_manager.ParseRecipe(self._recipe)
-    self._cache.AddToCache('recipe_name', recipe['name'])
+    self._cache.AddToCache('recipe_name', self._recipe['name'])
 
     modules = [
       module['name'] for module in self._recipe.get('modules', [])
@@ -147,21 +148,20 @@ class ModuleRunner(object):
 
     return 0
 
-  def _ImportRecipeModules(self, recipe: dict[str, typing.Any], module_locations: dict[str, str]) -> None:
+  def _ImportRecipeModules(self, module_locations: dict[str, str]) -> None:
     """Dynamically loads the modules declared in a recipe.
 
     Args:
-      recipe: A parsed and interpolated recipe dict.
       module_locations: A mapping of module names to package paths.
 
     Raises:
       errors.RecipeParseError: if a module requested in a recipe does not
           exist in the mapping.
     """
-    for module in recipe['modules'] + recipe.get('preflights', []):
+    for module in self._recipe.get('modules', []) + self._recipe.get('preflights', []):
       name = module['name']
       if name not in module_locations:
-        msg = f'In {recipe["name"]}: module {name} cannot be found. It may not have been declared.'
+        msg = f'In {self._recipe["name"]}: module {name} cannot be found. It may not have been declared.'
         raise errors.RecipeParseError(msg)
       self._logger.debug('Loading module %s from %s', name, module_locations[name])
 
@@ -174,8 +174,8 @@ class ModuleRunner(object):
 
   def _ExtractParsedSetUpArgs(self, running_args: dict[str, typing.Any]) -> None:
     """Given parsed running args, extract module set up args."""
-    for module_definition in (running_args.get('recipe', {}).get('preflights', []) +
-                   running_args.get('recipe', {}).get('modules', [])):
+    for module_definition in (running_args.get('preflights', []) +
+                              running_args.get('modules', [])):
       runtime_name = module_definition.get('runtime_name', module_definition['name'])
       self._module_setup_args[runtime_name] = module_definition.get('args', {})
 

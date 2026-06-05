@@ -72,7 +72,7 @@ class AWSCollector(module.BaseModule):
     self.all_volumes = False
     self.analysis_profile_name = None  # type: Optional[str]
     self.analysis_zone = None  # type: Optional[str]
-    self.analysis_vm = None  # type: ec2.AWSInstance
+    self.analysis_vm: ec2.AWSInstance = None  # pyrefly: ignore[bad-assignment]
     # See https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html
     self.device_suffixes = list('fghijklmnop')
 
@@ -86,16 +86,18 @@ class AWSCollector(module.BaseModule):
           volume_id=volume.volume_id,
           src_profile=self.remote_profile_name,
           dst_profile=self.analysis_profile_name)
-      self.analysis_vm.AttachVolume(
-          new_volume, self._FindNextAvailableDeviceName())
-      print('Volume {0:s} successfully copied to {1:s}'.format(
-          volume.volume_id, new_volume.volume_id))
 
-      container = containers.ForensicsVM(
-          name=self.analysis_vm.name,
-          evidence_disk=new_volume,
-          platform='aws')
-      self.StoreContainer(container)
+      if self.analysis_vm is not None:
+        self.analysis_vm.AttachVolume(
+            new_volume, self._FindNextAvailableDeviceName())
+        print('Volume {0:s} successfully copied to {1:s}'.format(
+            volume.volume_id, new_volume.volume_id))
+
+        container = containers.ForensicsVM(
+            name=self.analysis_vm.name,
+            evidence_disk=new_volume,
+            platform='aws')
+        self.StoreContainer(container)
 
   # pylint: disable=arguments-differ,too-many-arguments
   def SetUp(self,

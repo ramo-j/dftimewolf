@@ -48,6 +48,7 @@ graphviz = "^0.20"
 pytype = "^2024.10.11"
 ruff = "^0.3.4"
 absl-py = "^2.1.0"
+pyrefly = "^1.0.0"
 
 [tool.poetry.group.spannertelemetry]
 optional = true
